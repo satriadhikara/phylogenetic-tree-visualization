@@ -265,11 +265,11 @@ const PhylogeneticTreeViewer: React.FC<PhylogeneticTreeViewerProps> = ({
 			const paths = svgRef.current.querySelectorAll("path");
 			tl.fromTo(paths, 
 				{ 
-					strokeDasharray: function(i, el) { 
+					strokeDasharray: function(_i, el) { 
 						const pathLength = (el as SVGPathElement).getTotalLength();
 						return `${pathLength} ${pathLength}`;
 					}, 
-					strokeDashoffset: function(i, el) { 
+					strokeDashoffset: function(_i, el) { 
 						return (el as SVGPathElement).getTotalLength();
 					} 
 				},
