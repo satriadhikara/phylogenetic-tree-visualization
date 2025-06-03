@@ -2,6 +2,8 @@
 
 @plugin "tailwindcss-animate";
 
+@import './styles/landing-page.css';
+
 @custom-variant dark (&:is(.dark *));
 
 body {
