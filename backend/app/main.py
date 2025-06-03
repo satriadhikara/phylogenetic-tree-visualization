@@ -152,7 +152,7 @@ def construct_nj_tree(distance_matrix: _DistanceMatrix) -> str:
                 return newick_tree_str
         
         constructor = DistanceTreeConstructor()
-        tree = constructor.upgma(distance_matrix)
+        tree = constructor.nj(distance_matrix)
 
         for internal_node in tree.get_nonterminals():
             internal_node.name = None
