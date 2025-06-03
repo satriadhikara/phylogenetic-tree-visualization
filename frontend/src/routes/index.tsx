@@ -33,7 +33,7 @@ function App() {
 	const [treeResult, setTreeResult] = useState<TreeResponse | null>(null);
 	const [isLoading, setIsLoading] = useState<boolean>(false);
 	const [error, setError] = useState<string | null>(null);
-	const [pageReady, setPageReady] = useState<boolean>(false);
+	const [_pageReady, setPageReady] = useState<boolean>(false);
 	const [showLanding, setShowLanding] = useState<boolean>(true);
 	
 	// Refs for landing page animation
