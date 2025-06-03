@@ -1,6 +1,12 @@
 FROM python:3.12-slim
 
-RUN apt install -y clustalw && \
+# Install ClustalW2 and its dependencies.
+# We use clustalw2 as it's the more modern version often found in repositories.
+# `apt update` refreshes the package list.
+# `apt install -y` installs the package without prompting for confirmation.
+# `rm -rf /var/lib/apt/lists/*` cleans up the apt cache to keep the image size small.
+RUN apt update && \
+    apt install -y clustalw && \
     rm -rf /var/lib/apt/lists/*
 
 # Install uv.
