@@ -123,7 +123,8 @@ app = FastAPI(title="Bioinformatics Tree Builder API")
 origins = [
     "http://localhost:3000", 
     "http://127.0.0.1:3000",
-    "https://phylogenetic-tree-visualization.vercel.app"
+    "https://phylogenetic-tree-visualization.vercel.app",
+    "http://kds-frontend-g3qoci-177c0a-145-79-10-132.traefik.me"
 ]
 
 app.add_middleware(
