@@ -210,9 +210,7 @@ const PhylogeneticTreeViewer: React.FC<PhylogeneticTreeViewerProps> = ({
 				.attr("stroke", "#555")
 				.attr("stroke-opacity", 0.6)
 				.attr("stroke-width", 1.5)
-				.attr("d", linkGenerator)
-				.attr("stroke-dasharray", function() { return this.getTotalLength() })
-				.attr("stroke-dashoffset", function() { return this.getTotalLength() });
+				.attr("d", linkGenerator);
 
 			const nodeEnter = g
 				.selectAll<SVGGElement, d3.HierarchyPointNode<ParsedNode>>(".node")
@@ -266,7 +264,15 @@ const PhylogeneticTreeViewer: React.FC<PhylogeneticTreeViewerProps> = ({
 			
 			const paths = svgRef.current.querySelectorAll("path");
 			tl.fromTo(paths, 
-				{ strokeDasharray: function() { return this.getTotalLength() }, strokeDashoffset: function() { return this.getTotalLength() } },
+				{ 
+					strokeDasharray: function(i, el) { 
+						const pathLength = (el as SVGPathElement).getTotalLength();
+						return `${pathLength} ${pathLength}`;
+					}, 
+					strokeDashoffset: function(i, el) { 
+						return (el as SVGPathElement).getTotalLength();
+					} 
+				},
 				{ strokeDashoffset: 0, duration: 1.5, ease: "power2.out", stagger: 0.02 }
 			);
 			
