@@ -229,7 +229,7 @@ const PhylogeneticTreeViewer: React.FC<PhylogeneticTreeViewerProps> = ({
 
 			// Internal nodes (branch points)
 			nodeEnter
-				.filter(d => d.children)
+				.filter((d: d3.HierarchyPointNode<ParsedNode>) => !!d.children)
 				.append("circle")
 				.attr("r", 2.5)
 				.attr("fill", "#333")
@@ -239,7 +239,7 @@ const PhylogeneticTreeViewer: React.FC<PhylogeneticTreeViewerProps> = ({
 
 			// Leaf nodes (species/sequences)
 			nodeEnter
-				.filter(d => !d.children)
+				.filter((d: d3.HierarchyPointNode<ParsedNode>) => !d.children)
 				.append("circle")
 				.attr("r", 4)
 				.attr("fill", "#2563eb")
@@ -250,7 +250,7 @@ const PhylogeneticTreeViewer: React.FC<PhylogeneticTreeViewerProps> = ({
 
 			// Labels for leaf nodes only (species names)
 			nodeEnter
-				.filter(d => !d.children && d.data.name)
+				.filter((d: d3.HierarchyPointNode<ParsedNode>) => !d.children && !!d.data.name)
 				.append("text")
 				.attr("dy", ".35em")
 				.attr("x", 12)
