@@ -193,14 +193,17 @@ const PhylogeneticTreeViewer: React.FC<PhylogeneticTreeViewerProps> = ({
 				.append("g")
 				.attr("transform", `translate(${margin.left},${margin.top})`);
 
-			const linkGenerator = d3
-				.linkHorizontal<
-					d3.HierarchyLink<ParsedNode>,
-					d3.HierarchyPointNode<ParsedNode>
-				>()
-				.x((d) => d.y)
-				.y((d) => d.x);
+			// Custom function to create rectangular paths for phylogenetic trees
+			function createRectangularPath(d: d3.HierarchyLink<ParsedNode>) {
+				const source = d.source as d3.HierarchyPointNode<ParsedNode>;
+				const target = d.target as d3.HierarchyPointNode<ParsedNode>;
+				
+				// Create path with right angles: horizontal then vertical
+				// This creates the classic rectangular phylogenetic tree appearance
+				return `M${source.y},${source.x}L${target.y},${source.x}L${target.y},${target.x}`;
+			}
 
+			// Create rectangular phylogenetic tree branches instead of curved ones
 			g.selectAll<SVGPathElement, d3.HierarchyLink<ParsedNode>>(".link")
 				.data(treeRoot.links())
 				.enter()
@@ -210,8 +213,9 @@ const PhylogeneticTreeViewer: React.FC<PhylogeneticTreeViewerProps> = ({
 				.attr("stroke", "#555")
 				.attr("stroke-opacity", 0.6)
 				.attr("stroke-width", 1.5)
-				.attr("d", linkGenerator);
+				.attr("d", createRectangularPath);
 
+			// Add nodes with improved styling
 			const nodeEnter = g
 				.selectAll<SVGGElement, d3.HierarchyPointNode<ParsedNode>>(".node")
 				.data(treeRoot.descendants())
@@ -223,26 +227,42 @@ const PhylogeneticTreeViewer: React.FC<PhylogeneticTreeViewerProps> = ({
 				)
 				.attr("transform", (d) => `translate(${d.y},${d.x})`);
 
+			// Internal nodes (branch points)
 			nodeEnter
+				.filter(d => d.children)
 				.append("circle")
-				.attr("r", 3.5)
-				.attr("fill", (d) => (d.children ? "#555" : "#999"))
-				.attr("stroke", (d) => (d.children ? "#555" : "#999"))
-				.attr("stroke-width", 1)
+				.attr("r", 2.5)
+				.attr("fill", "#333")
+				.attr("stroke", "none")
 				.attr("opacity", 0)
 				.attr("transform", "scale(0)");
 
+			// Leaf nodes (species/sequences)
 			nodeEnter
+				.filter(d => !d.children)
+				.append("circle")
+				.attr("r", 4)
+				.attr("fill", "#2563eb")
+				.attr("stroke", "#1d4ed8")
+				.attr("stroke-width", 1.5)
+				.attr("opacity", 0)
+				.attr("transform", "scale(0)");
+
+			// Labels for leaf nodes only (species names)
+			nodeEnter
+				.filter(d => !d.children && d.data.name)
 				.append("text")
 				.attr("dy", ".35em")
-				.attr("x", (d) => (d.children ? -10 : 10))
-				.attr("text-anchor", (d) => (d.children ? "end" : "start"))
+				.attr("x", 12)
+				.attr("text-anchor", "start")
 				.text((d) => d.data.name)
-				.style("font-size", "11px")
+				.style("font-size", "12px")
 				.style("font-family", "sans-serif")
+				.style("font-weight", "500")
+				.style("fill", "#374151")
 				.style("opacity", 0);
 
-			console.log("[D3TreeViewer] D3 tree rendered.");
+			console.log("[D3TreeViewer] Rectangular phylogenetic tree rendered.");
 		} catch (error) {
 			console.error("[D3TreeViewer] Error rendering D3 tree:", error);
 			svg.selectAll("g").remove();
