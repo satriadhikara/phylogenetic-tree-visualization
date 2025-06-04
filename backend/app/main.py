@@ -86,35 +86,32 @@ def calculate_distances(aligned_sequences_fasta: str) -> _DistanceMatrix:
         if not alignment:
             raise ValueError("Could not read alignment for distance calculation.")
         
-        sequences = [str(record.seq) for record in alignment]
-        names = [record.id for record in alignment]
+        first_record = alignment[0]
+        first_seq = str(first_record.seq).upper()
+        is_dna = all(base in 'ATCGN-' for base in first_seq)
         
-        distances = []
-        for i in range(len(sequences)):
-            row = []
-            for j in range(i + 1):
-                if i == j:
-                    row.append(0.0)
-                else:
-                    seq1, seq2 = sequences[i], sequences[j]
-                    differences = sum(c1 != c2 for c1, c2 in zip(seq1, seq2))
-                    distance = differences / len(seq1) if len(seq1) > 0 else 0.0
-                    
-                    if distance == 0.0:
-                        distance = 0.00001
-                    
-                    row.append(distance)
-            distances.append(row)
+        try:
+            if is_dna:
+                calculator = DistanceCalculator('trans')
+                print("Using transition model for DNA sequences")
+            else:
+                calculator = DistanceCalculator('blosum62')
+                print("Using BLOSUM62 model for protein sequences")
+            
+            distance_matrix = calculator.get_distance(alignment)
+            
+        except Exception as model_error:
+            print(f"Sequence-specific model failed: {model_error}. Falling back to identity model.")
+            calculator = DistanceCalculator('identity')
+            distance_matrix = calculator.get_distance(alignment)
         
-        dm = _DistanceMatrix(names, distances)
+        print(f"Distance Matrix names: {distance_matrix.names}")
+        for i in range(len(distance_matrix.names)):
+            for j in range(i + 1, len(distance_matrix.names)):
+                distance = distance_matrix[i, j]
+                print(f"Distance between {distance_matrix.names[i]} and {distance_matrix.names[j]}: {distance}")
         
-        print(f"Distance Matrix names: {dm.names}")
-        for i in range(len(dm.names)):
-            for j in range(i + 1, len(dm.names)):
-                distance = dm[i, j]
-                print(f"Distance between {dm.names[i]} and {dm.names[j]}: {distance}")
-        
-        return dm
+        return distance_matrix
     except Exception as e:
         print(f"Error during distance calculation: {e}")
         raise
@@ -122,35 +119,6 @@ def calculate_distances(aligned_sequences_fasta: str) -> _DistanceMatrix:
 def construct_nj_tree(distance_matrix: _DistanceMatrix) -> str:
     print("Constructing tree...")
     try:
-        if len(distance_matrix.names) == 3:
-            names = distance_matrix.names
-            min_dist = float('inf')
-            min_pair = None
-            
-            for i in range(len(names)):
-                for j in range(i + 1, len(names)):
-                    dist = distance_matrix[i, j]
-                    if dist < min_dist:
-                        min_dist = dist
-                        min_pair = (i, j)
-            
-            if min_pair:
-                sister1 = names[min_pair[0]]
-                sister2 = names[min_pair[1]]
-                outgroup = [name for name in names if name not in [sister1, sister2]][0]
-                
-                sister_dist = min_dist / 2
-                outgroup_dist = (distance_matrix[names.index(sister1), names.index(outgroup)] + 
-                               distance_matrix[names.index(sister2), names.index(outgroup)]) / 2
-                
-                newick_tree_str = f"(({sister1}:{sister_dist:.5f},{sister2}:{sister_dist:.5f}):{outgroup_dist/2:.5f},{outgroup}:{outgroup_dist:.5f}):0.00000;"
-                
-                print(f"Manual tree construction for 3 sequences")
-                print(f"Sisters: {sister1}, {sister2} (distance: {min_dist})")
-                print(f"Outgroup: {outgroup}")
-                print(f"Newick Tree:\n{newick_tree_str}")
-                return newick_tree_str
-        
         constructor = DistanceTreeConstructor()
         tree = constructor.nj(distance_matrix)
 
